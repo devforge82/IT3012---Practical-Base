@@ -14,6 +14,9 @@ class GridHuntGame:
         self.food_positions = {[1, 2], [2, 3], [3, 0], [2, 1]}
         self.walls = {[1, 1], [2, 2]}
 
+        # Add toxic traps avoiding (0,0), walls, and food
+        self.toxic_traps = {(0, 3), (3, 2)}
+
         self.score = 0
         self.steps = 0
 
@@ -22,6 +25,7 @@ class GridHuntGame:
             'agent_pos': list(self.agent_pos),
             'smells_food': tuple(self.agent_pos) in self.food_positions,
             'hit_wall': tuple(self.agent_pos) in self.walls,
+            'smells_toxin': tuple(self.agent_pos) in self.toxic_traps,
             'score': self.score,
             'remaining_food': len(self.food_positions)
         }
@@ -50,6 +54,10 @@ class GridHuntGame:
         if tuple_pos in self.food_positions:
             self.food_positions.remove(tuple_pos)
             self.score += 20  # Reward for eating food pellet
+        
+        # Check collision with toxic traps
+        if tuple_pos in self.toxic_traps:
+            self.score -= 15  # Penalty for stepping on a trap
 
     def is_done(self) -> bool:
         return len(self.food_positions) == 0 or self.steps >= 20
