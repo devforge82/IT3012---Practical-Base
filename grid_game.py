@@ -97,9 +97,8 @@ class ModelBasedAgent:
 
 
 if __name__ == '__main__':
-    # Instantiate Game and SearchAgent (Change active_algo to 'BFS', 'DFS', or 'UCS')
     game = GridHuntGame()
-    agent = SearchAgent(active_algo='DFS')
+    agent = SearchAgent(active_algo='AStar')
 
     print(f"--- Starting Simulation ({agent.active_algo}) ---")
     while not game.is_done():
