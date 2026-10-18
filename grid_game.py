@@ -21,13 +21,18 @@ class GridHuntGame:
         self.steps = 0
 
     def get_percept(self, agent) -> dict:
+        # Determine adjacent position based on current agent facing direction
+        # Local percepts only (partially observable environment)
+        x, y = self.agent_pos
+        
+        # Example checking local adjacent cells
+        wall_ahead = (x + 1, y) in self.walls or x + 1 >= self.width
+        food_here = tuple(self.agent_pos) in self.food_positions
+        
         return {
-            'agent_pos': list(self.agent_pos),
-            'smells_food': tuple(self.agent_pos) in self.food_positions,
-            'hit_wall': tuple(self.agent_pos) in self.walls,
-            'smells_toxin': tuple(self.agent_pos) in self.toxic_traps,
-            'score': self.score,
-            'remaining_food': len(self.food_positions)
+            'wall_ahead': wall_ahead,
+            'food_here': food_here,
+            'score': self.score
         }
 
     def execute_action(self, agent, action: str):
@@ -61,3 +66,36 @@ class GridHuntGame:
 
     def is_done(self) -> bool:
         return len(self.food_positions) == 0 or self.steps >= 20
+
+class SimpleReflexAgent:
+    
+    def sense_and_act(self, percept: dict) -> str:
+        # Condition-Action Rules
+        if percept['food_here']:
+            return 'Eat'
+        elif percept['wall_ahead']:
+            return 'Left'  # Turn left when facing a wall
+        else:
+            return 'Right'  # Move/explore otherwise
+
+class ModelBasedAgent:
+    
+    def __init__(self):
+        self.visited_cells = set()  # Internal memory/state tracking
+        self.last_action = None
+
+    def sense_and_act(self, percept: dict) -> str:
+        # Update internal state (Transition & Sensor Model)
+        # Using current percepts and past actions to update memory
+        
+        if percept['food_here']:
+            action = 'Eat'
+        elif percept['wall_ahead']:
+            # Use memory state to choose an alternate action and break infinite loops
+            action = 'Down' if 'Left' in self.visited_cells else 'Left'
+        else:
+            action = 'Right'
+            
+        self.visited_cells.add(action)
+        self.last_action = action
+        return action
