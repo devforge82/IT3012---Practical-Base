@@ -1,6 +1,7 @@
 import random
 from collections import deque
 import heapq
+import math
 
 
 class GreedyGridAgent:
@@ -96,6 +97,44 @@ class SearchAgent:
                 self.plan = self.dfs_search(start, goal, grid_size, walls)
             elif self.active_algo == 'UCS':
                 self.plan = self.ucs_search(start, goal, grid_size, walls)
+
+        if self.plan:
+            return self.plan.pop(0)
+        return 'Up'
+    
+    def manhattan_distance(self, pos, goal):
+        """Calculates Manhattan distance h(n) = |x1 - x2| + |y1 - y2|"""
+        return abs(pos[0] - goal[0]) + abs(pos[1] - goal[1])
+
+    def euclidean_distance(self, pos, goal):
+        """Calculates Euclidean distance h(n) = sqrt((x1 - x2)^2 + (y1 - y2)^2)"""
+        return math.sqrt((pos[0] - goal[0]) ** 2 + (pos[1] - goal[1]) ** 2)
+
+        if __name__ == '__main__':
+            agent = SearchAgent()
+            print("Manhattan (0,0) to (3,4):", agent.manhattan_distance((0, 0), (3, 4)))  # Returns 7
+            print("Euclidean (0,0) to (3,4):", agent.euclidean_distance((0, 0), (3, 4)))  # Returns 5.0
+
+    def sense_and_act(self, percept: dict) -> str:
+        if not self.plan:
+            start = percept['agent_pos']
+            foods = percept['all_food']
+            if not foods:
+                return 'Up'
+
+            # Find closest food pellet by Manhattan distance
+            goal = min(foods, key=lambda f: self.manhattan_distance(start, f))
+            grid_size = percept['grid_size']
+            walls = set(percept['walls'])
+
+            if self.active_algo == 'BFS':
+                self.plan = self.bfs_search(start, goal, grid_size, walls)
+            elif self.active_algo == 'DFS':
+                self.plan = self.dfs_search(start, goal, grid_size, walls)
+            elif self.active_algo == 'UCS':
+                self.plan = self.ucs_search(start, goal, grid_size, walls)
+            elif self.active_algo == 'AStar':
+                self.plan = self.astar_search(start, goal, walls, grid_size, heuristic_type='manhattan')
 
         if self.plan:
             return self.plan.pop(0)
